@@ -1359,16 +1359,6 @@ class KeyboardShortcuts {
                 // Разрешаем CodeMirror обработать стандартным образом
                 return true;
             }
-            
-            // Ctrl+F для поиска
-            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                e.preventDefault();
-                if (this.ui.editor) {
-                    // Активируем поиск в CodeMirror
-                    this.ui.editor.execCommand('find');
-                }
-                return false;
-            }
         });
     }
 }
