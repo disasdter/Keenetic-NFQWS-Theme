@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -86,73 +85,37 @@
 
 <header>
     <h1 class="logo">
-        <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Основа щита (синяя) -->
-            <path class="shield-base" d="M12 2L4 5V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V5L12 2Z" 
-                  fill="none" 
-                  stroke="#007AFF" 
-                  stroke-width="2" 
-                  stroke-linecap="round" 
-                  stroke-linejoin="round"/>
-            
-            <!-- Основная трещина (красная) -->
-            <path class="crack-main" d="M8 8L12 12L16 16" 
-                  fill="none" 
-                  stroke="#FF3B30" 
-                  stroke-width="2" 
-                  stroke-linecap="round"/>
-            
-            <!-- Вторичная трещина (красная) -->
-            <path class="crack-secondary" d="M16 8L12 12L8 16" 
-                  fill="none" 
-                  stroke="#FF3B30" 
-                  stroke-width="2" 
-                  stroke-linecap="round"/>
-            
-            <!-- Мелкие трещины (оранжевые) -->
-            <line class="small-crack crack-1" x1="10" y1="6" x2="12" y2="8" 
-                  stroke="#FF9500" 
-                  stroke-width="1.5" 
-                  stroke-linecap="round"/>
-            <line class="small-crack crack-2" x1="14" y1="6" x2="12" y2="8" 
-                  stroke="#FF9500" 
-                  stroke-width="1.5" 
-                  stroke-linecap="round"/>
-            <line class="small-crack crack-3" x1="10" y1="18" x2="12" y2="16" 
-                  stroke="#FF9500" 
-                  stroke-width="1.5" 
-                  stroke-linecap="round"/>
-            <line class="small-crack crack-4" x1="14" y1="18" x2="12" y2="16" 
-                  stroke="#FF9500" 
-                  stroke-width="1.5" 
-                  stroke-linecap="round"/>
-            
-            <!-- Отколовшиеся фрагменты -->
-            <circle class="fragment fragment-1" cx="7" cy="7" r="1" fill="#FF3B30" opacity="0.7"/>
-            <circle class="fragment fragment-2" cx="17" cy="17" r="1" fill="#FF3B30" opacity="0.7"/>
-        </svg>
         Keenetic NFQWS <span id="status"></span>
     </h1>
     <div class="header-controls">
         <!-- Кнопка Save - скрыта по умолчанию, показывается при изменении -->
-        <button class="button red" id="save" style="display: none;">
+        <button class="button red save-icon" id="save" style="display: none;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            <span id="save-text">Save</span>
+            <span class="save-text" id="save-text">Save</span>
         </button>
         
-        <button class="button" id="restart">
+        <!-- Кнопка создания нового файла -->
+        <button class="button create-file-icon" id="create-file">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span class="create-file-text" id="create-file-text">New File</span>
+        </button>
+        
+        <button class="button restart-icon" id="restart">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 4v6h6"></path>
                 <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
             </svg>
-            <span id="restart-text">Restart</span>
+            <span class="restart-text" id="restart-text">Restart</span>
         </button>
         
-        <!-- Dropdown меню - исправленная версия -->
+        <!-- Dropdown меню -->
         <div class="dropdown-container">
             <button class="button" id="dropdown">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -301,6 +264,47 @@
 
 <div id="overlay"></div>
 
+<!-- Попап для создания нового файла -->
+<div id="create-file-popup" class="popup hidden">
+    <div class="popup-header">
+        <span class="popup-title" id="create-file-title">Create New File</span>
+        <button class="popup-close-btn" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+    <div class="popup-content">
+        <div class="create-file-form">
+            <div class="form-group">
+                <label for="new-filename" id="filename-label">File name (without extension)</label>
+                <input type="text" id="new-filename" class="form-input" placeholder="my-config" autocomplete="off">
+                <div class="form-hint" id="filename-hint">Enter file name without extension</div>
+            </div>
+            <div class="form-group">
+                <label id="extension-label">File type</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="filetype" value=".list" checked>
+                        <span class="radio-custom"></span>
+                        <span class="radio-text">.list file</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="filetype" value=".conf">
+                        <span class="radio-custom"></span>
+                        <span class="radio-text">.conf file</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="popup-footer">
+        <button class="popup-close" id="create-file-cancel">Cancel</button>
+        <button class="popup-yes" id="create-file-confirm">Create</button>
+    </div>
+</div>
+
 <div id="alert" class="popup hidden">
     <div class="popup-header">
         <span class="popup-title" id="popup-title"></span>
@@ -319,10 +323,10 @@
     </div>
 </div>
 
-<!-- Новый попап для результатов проверки доступности -->
+<!-- Попап для результатов проверки доступности (старый дизайн) -->
 <div id="availability-results" class="popup hidden">
     <div class="popup-header">
-        <span class="popup-title" id="availability-title">Проверка доступности доменов</span>
+        <span class="popup-title" id="availability-title">Domain Availability Check</span>
         <button class="popup-close-btn" title="Close">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -330,32 +334,32 @@
             </svg>
         </button>
     </div>
-    <div class="popup-content" id="availability-content">
-        <div class="availability-stats">
-            <div class="stat-item">
-                <span class="stat-label">Всего:</span>
-                <span class="stat-value" id="total-domains">0</span>
+    <div class="popup-content">
+        <div class="availability-info">
+            <div class="info-row">
+                <span class="info-label">Total domains:</span>
+                <span class="info-value" id="total-domains">0</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Доступны:</span>
-                <span class="stat-value accessible" id="accessible-domains">0</span>
+            <div class="info-row">
+                <span class="info-label">Accessible:</span>
+                <span class="info-value accessible" id="accessible-domains">0</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Заблокированы:</span>
-                <span class="stat-value blocked" id="blocked-domains">0</span>
+            <div class="info-row">
+                <span class="info-label">Blocked:</span>
+                <span class="info-value blocked" id="blocked-domains">0</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Прогресс:</span>
-                <span class="stat-value" id="progress">0%</span>
+            <div class="info-row">
+                <span class="info-label">Progress:</span>
+                <span class="info-value" id="progress">0%</span>
             </div>
         </div>
-        <div class="progress-bar-container">
+        <div class="progress-container">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
-        <div class="domains-list" id="domains-list"></div>
+        <div class="results-container" id="results-container"></div>
     </div>
     <div class="popup-footer">
-        <button class="popup-close" id="availability-close">Закрыть</button>
+        <button class="popup-close" id="availability-close">Close</button>
     </div>
 </div>
 
@@ -377,49 +381,6 @@
         <button class="popup-yes" id="login-button">Login</button>
     </div>
 </div>
-
-<script>
-    // JavaScript для анимации логотипа
-    document.addEventListener('DOMContentLoaded', function() {
-        const logo = document.querySelector('.logo-icon');
-        
-        // Анимация пульсации всего логотипа
-        setInterval(() => {
-            logo.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                logo.style.transform = 'scale(1)';
-            }, 300);
-        }, 3000);
-        
-        // Анимация трещин
-        const cracks = document.querySelectorAll('.crack-main, .crack-secondary, .small-crack');
-        cracks.forEach((crack, index) => {
-            setInterval(() => {
-                crack.style.strokeOpacity = '1';
-                crack.style.strokeWidth = (parseFloat(crack.getAttribute('stroke-width')) + 0.5) + 'px';
-                
-                setTimeout(() => {
-                    crack.style.strokeOpacity = '0.7';
-                    crack.style.strokeWidth = crack.getAttribute('stroke-width') + 'px';
-                }, 500);
-            }, 2000 + index * 300);
-        });
-        
-        // Анимация фрагментов
-        const fragments = document.querySelectorAll('.fragment');
-        fragments.forEach((fragment, index) => {
-            setInterval(() => {
-                fragment.style.opacity = '1';
-                fragment.style.transform = `translate(${Math.random() * 2 - 1}px, ${Math.random() * 2 - 1}px)`;
-                
-                setTimeout(() => {
-                    fragment.style.opacity = '0.7';
-                    fragment.style.transform = 'translate(0, 0)';
-                }, 800);
-            }, 2500 + index * 500);
-        });
-    });
-</script>
 
 </body>
 </html>

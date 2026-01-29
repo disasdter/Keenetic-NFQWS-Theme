@@ -81,7 +81,13 @@ function getLogContent(string $filename, $path = ROOT_DIR . '/var/log'): string 
 function saveFile(string $filename, string $content, $path = ROOT_DIR . '/etc/nfqws') {
     $filename = basename($filename);
     $file = $path . '/' . $filename;
-    return file_exists($file) && file_put_contents($file, normalizeString($content)) !== false;
+    
+    // Создаем директорию если она не существует
+    if (!file_exists($path)) {
+        mkdir($path, 0755, true);
+    }
+    
+    return file_put_contents($file, normalizeString($content)) !== false;
 }
 
 function saveLog(string $filename, string $content, $path = ROOT_DIR . '/var/log') {
@@ -90,6 +96,23 @@ function saveLog(string $filename, string $content, $path = ROOT_DIR . '/var/log
 
 function removeFile(string $filename, $path = ROOT_DIR . '/etc/nfqws') {
     $filename = basename($filename);
+    
+    // Защищенные файлы, которые нельзя удалять
+    $protectedFiles = [
+        'nfqws.conf',
+        'user.list',
+        'exclude.list',
+        'auto.list',
+        'ipset.list',
+        'ipset_exclude.list',
+        'nfqws.log'
+    ];
+    
+    // Проверяем, является ли файл защищенным
+    if (in_array($filename, $protectedFiles)) {
+        return false;
+    }
+    
     $file = $path . '/' . $filename;
     if (file_exists($file)) {
         return unlink($file);

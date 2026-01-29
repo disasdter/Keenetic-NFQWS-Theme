@@ -57,27 +57,6 @@
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
-[data-theme="dark"] {
-    --color-bg: #0a0a0a;
-    --color-surface: #1a1a1a;
-    --color-surface-alt: #252525;
-    --color-text: #f5f5f5;
-    --color-text-secondary: #b0b0b0;
-    --color-text-tertiary: #777777;
-    --color-accent: #0a84ff;
-    --color-accent-hover: #409cff;
-    --color-success: #30d158;
-    --color-error: #ff453a;
-    --color-warning: #ff9f0a;
-    --color-border: #333333;
-    --color-border-light: #2a2a2a;
-    --color-scrollbar: #f5f5f5;
-    --color-scrollbar-track: #2a2a2a;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.35);
-}
-
 /* Base Styles */
 * {
     margin: 0;
@@ -154,12 +133,6 @@ header:hover {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-}
-
-.logo-icon {
-    width: 28px;
-    height: 28px;
-    flex-shrink: 0;
 }
 
 #status {
@@ -284,7 +257,50 @@ body.changed #save {
     border-color: #ff1a1a;
 }
 
-/* Dropdown Container - исправленный */
+/* Адаптивные стили для кнопок с иконками */
+.save-icon,
+.create-file-icon,
+.restart-icon {
+    position: relative;
+}
+
+.save-text,
+.create-file-text,
+.restart-text {
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .save-text,
+    .create-file-text,
+    .restart-text {
+        display: none;
+    }
+    
+    .save-icon,
+    .create-file-icon,
+    .restart-icon {
+        width: 40px;
+        padding: 0;
+        justify-content: center;
+    }
+    
+    .save-icon svg,
+    .create-file-icon svg,
+    .restart-icon svg {
+        margin-right: 0;
+    }
+}
+
+@media (min-width: 769px) {
+    .save-text,
+    .create-file-text,
+    .restart-text {
+        display: inline;
+    }
+}
+
+/* Dropdown Container */
 .dropdown-container {
     position: relative;
     display: inline-block;
@@ -306,7 +322,7 @@ body.changed #save {
     transform: rotate(180deg);
 }
 
-/* Dropdown Menu - исправленный */
+/* Dropdown Menu */
 .dropdown-menu {
     position: absolute;
     top: calc(100% + 4px);
@@ -663,6 +679,15 @@ body.fullscreen-active footer {
     z-index: 2;
 }
 
+/* Темный фон для редактора в темной теме */
+[data-theme="dark"] .CodeMirror {
+    background: #1b1b1c !important;
+}
+
+[data-theme="dark"] .CodeMirror-gutters {
+    background: #252525 !important;
+}
+
 .CodeMirror-gutters {
     background: var(--color-surface-alt) !important;
     border-right: 0px solid  var(--color-border-light) !important;
@@ -840,7 +865,7 @@ footer {
     border: 0px solid  var(--color-border-light);
 }
 
-/* Overlay - исправлено */
+/* Overlay */
 #overlay {
     position: fixed;
     top: 0;
@@ -853,13 +878,13 @@ footer {
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--transition-base), visibility var(--transition-base);
-    pointer-events: none; /* Не кликабелен по умолчанию */
+    pointer-events: none;
 }
 
 body.disabled #overlay {
     opacity: 1;
     visibility: visible;
-    pointer-events: auto; /* Становится кликабельным только когда нужно */
+    pointer-events: auto;
 }
 
 /* Popups */
@@ -951,6 +976,96 @@ body.disabled #overlay {
     gap: var(--space-md);
 }
 
+/* Стили для формы создания файла */
+.create-file-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.form-input {
+    padding: var(--space-md);
+    border: 0px solid  var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.form-hint {
+    font-size: 12px;
+    color: var(--color-text-tertiary);
+    margin-top: 4px;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.radio-label:hover {
+    background: var(--color-surface-alt);
+}
+
+.radio-label input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    position: relative;
+    transition: all var(--transition-fast);
+}
+
+.radio-label input[type="radio"]:checked + .radio-custom {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+}
+
+.radio-label input[type="radio"]:checked + .radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: white;
+}
+
+.radio-text {
+    font-size: 14px;
+    color: var(--color-text);
+}
+
 .popup-footer {
     display: flex;
     justify-content: flex-end;
@@ -1026,7 +1141,7 @@ body.disabled #overlay {
     display: none !important;
 }
 
-#alert.confirm .popup-close {
+#alert.confim .popup-close {
     display: none !important;
 }
 
@@ -1036,6 +1151,7 @@ body.disabled #overlay {
 
 /* Состояния для authenticated */
 body.authenticated #save,
+body.authenticated #create-file,
 body.authenticated #restart,
 body.authenticated #dropdown,
 body.authenticated .nav-tab,
@@ -1046,6 +1162,7 @@ body.authenticated .editor-container {
 }
 
 body:not(.authenticated) #save,
+body:not(.authenticated) #create-file,
 body:not(.authenticated) #restart,
 body:not(.authenticated) #dropdown,
 body:not(.authenticated) .nav-tab {
@@ -1088,7 +1205,7 @@ body.changed #save {
     transform: rotate(90deg);
 }
 
-/* File type indicators - КОНФИГУРАЦИОННЫЕ ФАЙЛЫ ТЕПЕРЬ КРАСНЫЕ */
+/* File type indicators - использование локальных иконок */
 .nav-tab[data-filename$=".conf"],
 .nav-tab[data-filename*=".conf-"] {
     padding-left: 32px;
@@ -1102,15 +1219,16 @@ body.changed #save {
     left: 8px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0;
     width: 14px;
     height: 14px;
-    background: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z' stroke='%23FF3B30' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M14 2v6h6' stroke='%23FF3B30' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M10 13H8' stroke='%23FF3B30' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M16 13h-2' stroke='%23FF3B30' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M10 17H8' stroke='%23FF3B30' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M16 17h-2' stroke='%23FF3B30' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+    background: url("img/Config.svg") no-repeat center;
+    background-size: contain;
+    filter: invert(43%) sepia(98%) saturate(2294%) hue-rotate(191deg) brightness(101%) contrast(101%);
 }
 
-.nav-tab[data-filename$=".conf"]:hover,
-.nav-tab[data-filename*=".conf-"]:hover {
-    border-left-color: #ff1a1a;
+[data-theme="dark"] .nav-tab[data-filename$=".conf"]::before,
+[data-theme="dark"] .nav-tab[data-filename*=".conf-"]::before {
+    filter: invert(43%) sepia(98%) saturate(2294%) hue-rotate(191deg) brightness(101%) contrast(101%);
 }
 
 .nav-tab.active[data-filename$=".conf"]::before,
@@ -1118,17 +1236,7 @@ body.changed #save {
     filter: brightness(0) invert(1);
 }
 
-.nav-tab.active[data-filename$=".list"]::before,
-.nav-tab.active[data-filename*=".list-"]::before {
-    filter: brightness(0) invert(1);
-}
-
-.nav-tab.active[data-filename$=".log"]::before,
-.nav-tab.active[data-filename*=".log-"]::before {
-    filter: brightness(0) invert(1);
-}
-
-/* List files - зеленые как раньше */
+/* List files */
 .nav-tab[data-filename$=".list"],
 .nav-tab[data-filename*=".list-"] {
     padding-left: 32px;
@@ -1142,13 +1250,24 @@ body.changed #save {
     left: 8px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0;
     width: 14px;
     height: 14px;
-    background: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8 6h13' stroke='%2334C759' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M8 12h13' stroke='%2334C759' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M8 18h13' stroke='%2334C759' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 6h.01' stroke='%2334C759' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 12h.01' stroke='%2334C759' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 18h.01' stroke='%2334C759' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+    background: url("img/List.svg") no-repeat center;
+    background-size: contain;
+    filter: invert(53%) sepia(91%) saturate(392%) hue-rotate(88deg) brightness(97%) contrast(86%);
 }
 
-/* Log files - оранжевые как раньше */
+[data-theme="dark"] .nav-tab[data-filename$=".list"]::before,
+[data-theme="dark"] .nav-tab[data-filename*=".list-"]::before {
+    filter: invert(53%) sepia(91%) saturate(392%) hue-rotate(88deg) brightness(97%) contrast(86%);
+}
+
+.nav-tab.active[data-filename$=".list"]::before,
+.nav-tab.active[data-filename*=".list-"]::before {
+    filter: brightness(0) invert(1);
+}
+
+/* Log files */
 .nav-tab[data-filename$=".log"] {
     padding-left: 32px;
     position: relative;
@@ -1161,76 +1280,114 @@ body.changed #save {
     left: 8px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0;
     width: 14px;
     height: 14px;
-    background: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 12h6' stroke='%23FF9500' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M9 16h6' stroke='%23FF9500' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' stroke='%23FF9500' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;
+    background: url("img/Log.svg") no-repeat center;
+    background-size: contain;
+    filter: invert(58%) sepia(89%) saturate(576%) hue-rotate(1deg) brightness(102%) contrast(101%);
+}
+
+[data-theme="dark"] .nav-tab[data-filename$=".log"]::before {
+    filter: invert(58%) sepia(89%) saturate(576%) hue-rotate(1deg) brightness(102%) contrast(101%);
+}
+
+.nav-tab.active[data-filename$=".log"]::before {
+    filter: brightness(0) invert(1);
 }
 
 .nav-tab[data-filename$=".log"] .nav-clear {
     pointer-events: auto;
 }
 
-/* Availability Check Styles - компактная версия */
+/* Иконка мусорки для удаления файлов */
+.nav-trash svg {
+    width: 12px;
+    height: 12px;
+    background: url("img/Musor.svg") no-repeat center;
+    background-size: contain;
+    filter: invert(16%) sepia(99%) saturate(2554%) hue-rotate(0deg) brightness(100%) contrast(114%);
+}
+
+[data-theme="dark"] .nav-trash svg {
+    filter: invert(43%) sepia(93%) saturate(0%) hue-rotate(0deg) brightness(99%) contrast(108%);
+}
+
+.nav-tab.active .nav-trash svg {
+    filter: brightness(0) invert(1);
+}
+
+/* Иконка веника для очистки логов */
+.nav-clear svg {
+    width: 12px;
+    height: 12px;
+    background: url("img/Venik.svg") no-repeat center;
+    background-size: contain;
+    filter: invert(58%) sepia(89%) saturate(576%) hue-rotate(1deg) brightness(102%) contrast(101%);
+}
+
+[data-theme="dark"] .nav-clear svg {
+    filter: invert(58%) sepia(89%) saturate(576%) hue-rotate(1deg) brightness(102%) contrast(101%);
+}
+
+.nav-tab.active .nav-clear svg {
+    filter: brightness(0) invert(1);
+}
+
+/* Убираем стандартные SVG стили для иконок */
+.nav-trash svg path,
+.nav-clear svg path,
+.nav-trash svg line,
+.nav-clear svg line,
+.nav-trash svg polyline,
+.nav-clear svg polyline {
+    display: none;
+}
+
+/* Availability Check Styles - старый дизайн */
 #availability-results .popup-content {
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
-    max-height: 70vh;
+    gap: var(--space-lg);
 }
 
-.availability-stats {
+.availability-info {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: var(--space-sm);
+    padding: var(--space-md);
     background: var(--color-surface-alt);
-    padding: var(--space-sm);
     border-radius: var(--radius-md);
     border: 0px solid  var(--color-border-light);
-    font-size: 12px;
 }
 
-.stat-item {
+.info-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 4px;
-    flex: 1;
-    min-width: 120px;
+    font-size: 13px;
 }
 
-.stat-label {
+.info-label {
     font-weight: 500;
     color: var(--color-text-secondary);
-    font-size: 11px;
-    white-space: nowrap;
 }
 
-.stat-value {
+.info-value {
     font-weight: 600;
     font-family: var(--font-mono);
-    font-size: 12px;
-    padding: 2px 6px;
-    border-radius: var(--radius-xs);
-    background: var(--color-surface);
-    border: 0px solid  var(--color-border-light);
-    min-width: 40px;
-    text-align: center;
+    color: var(--color-text);
 }
 
-.stat-value.accessible {
+.info-value.accessible {
     color: var(--color-success);
-    background: rgba(52, 199, 89, 0.1);
-    border-color: rgba(52, 199, 89, 0.2);
 }
 
-.stat-value.blocked {
+.info-value.blocked {
     color: var(--color-error);
-    background: rgba(255, 59, 48, 0.1);
-    border-color: rgba(255, 59, 48, 0.2);
 }
 
-.progress-bar-container {
-    height: 6px;
+.progress-container {
+    height: 8px;
     background: var(--color-surface-alt);
     border-radius: var(--radius-sm);
     overflow: hidden;
@@ -1245,77 +1402,66 @@ body.changed #save {
     width: 0%;
 }
 
-.domains-list {
+.results-container {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     max-height: 300px;
     overflow-y: auto;
     padding-right: var(--space-xs);
-    font-size: 11px;
 }
 
-.domain-item {
+.domain-result {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 8px;
+    padding: 8px 12px;
     background: var(--color-surface-alt);
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-sm);
     border: 0px solid  var(--color-border-light);
+    font-size: 12px;
     transition: all var(--transition-fast);
 }
 
-.domain-item.pending {
+.domain-result.pending {
     opacity: 0.7;
-    border-left: 3px solid var(--color-warning);
 }
 
-.domain-item.accessible {
+.domain-result.accessible {
+    background: rgba(52, 199, 89, 0.1);
     border-left: 3px solid var(--color-success);
-    background: rgba(52, 199, 89, 0.05);
 }
 
-.domain-item.blocked {
+.domain-result.blocked {
+    background: rgba(255, 59, 48, 0.1);
     border-left: 3px solid var(--color-error);
-    background: rgba(255, 59, 48, 0.05);
 }
 
 .domain-name {
     font-family: var(--font-mono);
-    font-size: 11px;
     color: var(--color-text);
     word-break: break-all;
     flex: 1;
-    margin-right: 8px;
+    margin-right: 12px;
 }
 
 .domain-status {
-    font-size: 10px;
     font-weight: 500;
-    padding: 2px 6px;
-    border-radius: var(--radius-xs);
     white-space: nowrap;
-    min-width: 80px;
-    text-align: center;
+    min-width: 90px;
+    text-align: right;
 }
 
-.domain-item.accessible .domain-status {
+.domain-result.accessible .domain-status {
     color: var(--color-success);
-    background: rgba(52, 199, 89, 0.1);
-    border: 0px solid  rgba(52, 199, 89, 0.2);
 }
 
-.domain-item.blocked .domain-status {
+.domain-result.blocked .domain-status {
     color: var(--color-error);
-    background: rgba(255, 59, 48, 0.1);
-    border: 0px solid  rgba(255, 59, 48, 0.2);
 }
 
-.domain-item.pending .domain-status {
+.domain-result.pending .domain-status {
     color: var(--color-warning);
-    background: rgba(255, 149, 0, 0.1);
-    border: 0px solid  rgba(255, 149, 0, 0.2);
 }
 
 /* Utility Classes */
@@ -1338,11 +1484,6 @@ body.changed #save {
         font-size: 16px;
     }
     
-    .logo-icon {
-        width: 24px;
-        height: 24px;
-    }
-    
     .button {
         padding: 8px 16px;
         font-size: 13px;
@@ -1363,6 +1504,16 @@ body.changed #save {
         padding-left: 28px;
     }
     
+    .nav-tab[data-filename$=".conf"]::before,
+    .nav-tab[data-filename*=".conf-"]::before,
+    .nav-tab[data-filename$=".list"]::before,
+    .nav-tab[data-filename*=".list-"]::before,
+    .nav-tab[data-filename$=".log"]::before {
+        left: 6px;
+        width: 12px;
+        height: 12px;
+    }
+    
     footer {
         flex-direction: column;
         gap: var(--space-sm);
@@ -1381,25 +1532,24 @@ body.changed #save {
     }
     
     /* Responsive adjustments for availability popup */
-    .availability-stats {
-        grid-template-columns: 1fr;
+    .availability-info {
+        padding: var(--space-sm);
     }
     
-    .stat-item {
-        min-width: 100px;
+    .info-row {
+        font-size: 12px;
     }
     
-    .domains-list {
+    .results-container {
         max-height: 200px;
-        font-size: 10px;
     }
     
-    .domain-name {
-        font-size: 10px;
+    .domain-result {
+        padding: 6px 8px;
+        font-size: 11px;
     }
     
     .domain-status {
-        font-size: 9px;
         min-width: 70px;
     }
     
@@ -1414,6 +1564,43 @@ body.changed #save {
     
     #check-availability svg {
         margin-right: 0;
+    }
+    
+    /* Прячем текст у кнопок на мобильных устройствах */
+    .save-text,
+    .create-file-text,
+    .restart-text {
+        display: none;
+    }
+    
+    .save-icon,
+    .create-file-icon,
+    .restart-icon {
+        width: 36px;
+        padding: 0;
+        justify-content: center;
+    }
+    
+    .save-icon svg,
+    .create-file-icon svg,
+    .restart-icon svg {
+        margin-right: 0;
+    }
+}
+
+@media (min-width: 769px) {
+    .save-text,
+    .create-file-text,
+    .restart-text {
+        display: inline;
+    }
+    
+    .save-icon,
+    .create-file-icon,
+    .restart-icon {
+        width: auto;
+        padding: 10px 20px;
+        justify-content: flex-start;
     }
 }
 
@@ -1435,6 +1622,13 @@ body.changed #save {
         width: 32px;
     }
     
+    .save-icon,
+    .create-file-icon,
+    .restart-icon {
+        width: 32px;
+        min-height: 32px;
+    }
+    
     .editor-toolbar {
         padding: var(--space-xs) var(--space-sm);
     }
@@ -1443,18 +1637,21 @@ body.changed #save {
         font-size: 11px;
     }
     
-    .availability-stats {
+    .availability-info {
         flex-direction: column;
         gap: var(--space-xs);
     }
     
-    .stat-item {
-        min-width: auto;
-        justify-content: space-between;
+    .results-container {
+        max-height: 150px;
     }
     
-    .domains-list {
-        max-height: 150px;
+    .create-file-form {
+        gap: var(--space-md);
+    }
+    
+    .form-input {
+        padding: var(--space-sm);
     }
 }
 
@@ -1496,7 +1693,7 @@ body:not(.running) #status {
     animation: logoutClick 0.2s ease;
 }
 
-/* Notification animations - ТОЛЬКО ДЛЯ ПРАВОЙ ЧАСТИ */
+/* Notification animations */
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -1559,45 +1756,4 @@ body:not(.running) #reload {
 
 body:not(.running) #start {
     display: flex !important;
-}
-
-/* Анимации для логотипа сломанного щита */
-.logo-icon {
-    transition: transform 0.3s ease;
-}
-
-.shield-base {
-    stroke: var(--color-accent);
-}
-
-.crack-main, .crack-secondary {
-    stroke: var(--color-error);
-}
-
-.small-crack {
-    stroke: var(--color-warning);
-}
-
-.fragment {
-    fill: var(--color-error);
-}
-
-/* Эффект при наведении на логотип */
-.logo:hover .logo-icon {
-    animation: shieldShake 0.5s ease;
-}
-
-@keyframes shieldShake {
-    0%, 100% { transform: translateX(0) rotate(0); }
-    25% { transform: translateX(-2px) rotate(-1deg); }
-    50% { transform: translateX(2px) rotate(1deg); }
-    75% { transform: translateX(-1px) rotate(-0.5deg); }
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 768px) {
-    .logo-icon {
-        width: 24px;
-        height: 24px;
-    }
 }

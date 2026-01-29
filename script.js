@@ -105,18 +105,29 @@ class UI {
                 noFileSelected: "No file selected",
                 fullscreen: "Toggle fullscreen",
                 exitFullscreen: "Exit fullscreen",
-                checkAvailability: "Проверить доступность",
-                checkingDomains: "Проверка доступности доменов...",
-                domainCheckComplete: "Проверка доменов завершена",
-                totalDomains: "Всего",
-                accessibleDomains: "Доступны",
-                blockedDomains: "Заблокированы",
-                progress: "Прогресс",
-                domainAccessible: "Доступен",
-                domainBlocked: "Заблокирован",
-                noDomainsFound: "Домены не найдены в файле",
-                selectListFile: "Выберите файл .list для проверки доменов",
-                checkingDomain: "Проверка {domain}..."
+                newFile: "New File",
+                createFile: "Create New File",
+                filenameLabel: "File name (without extension)",
+                filenameHint: "Enter file name without extension",
+                extensionLabel: "File type",
+                listFile: ".list file",
+                configFile: ".conf file",
+                fileCreated: "File created successfully",
+                fileCreationFailed: "Failed to create file",
+                fileExists: "File already exists",
+                protectedFile: "This file is protected and cannot be deleted",
+                checkAvailability: "Check Availability",
+                checkingDomains: "Checking domain availability...",
+                domainCheckComplete: "Domain check completed",
+                totalDomains: "Total domains:",
+                accessibleDomains: "Accessible:",
+                blockedDomains: "Blocked:",
+                progress: "Progress:",
+                domainAccessible: "✓ Accessible",
+                domainBlocked: "✗ Blocked",
+                noDomainsFound: "No domains found in the file",
+                selectListFile: "Select a .list file to check domains",
+                checkingDomain: "Checking..."
             };
         }
     }
@@ -137,34 +148,28 @@ class UI {
             extraKeys: {
                 "Ctrl-S": (cm) => {
                     this.saveCurrentFile();
-                    return false; // Предотвращаем стандартное поведение
+                    return false;
                 },
                 "Cmd-S": (cm) => {
                     this.saveCurrentFile();
-                    return false; // Предотвращаем стандартное поведение
+                    return false;
                 },
                 "Ctrl-Z": (cm) => {
-                    // Позволяем CodeMirror обработать отмену самостоятельно
                     return CodeMirror.Pass;
                 },
                 "Cmd-Z": (cm) => {
-                    // Позволяем CodeMirror обработать отмену самостоятельно
                     return CodeMirror.Pass;
                 },
                 "Ctrl-Y": (cm) => {
-                    // Позволяем CodeMirror обработать повтор самостоятельно
                     return CodeMirror.Pass;
                 },
                 "Cmd-Y": (cm) => {
-                    // Позволяем CodeMirror обработать повтор самостоятельно
                     return CodeMirror.Pass;
                 },
                 "Ctrl-Shift-Z": (cm) => {
-                    // Позволяем CodeMirror обработать повтор самостоятельно
                     return CodeMirror.Pass;
                 },
                 "Cmd-Shift-Z": (cm) => {
-                    // Позволяем CodeMirror обработать повтор самостоятельно
                     return CodeMirror.Pass;
                 }
             }
@@ -174,7 +179,6 @@ class UI {
             this.checkForChanges();
         });
         
-        // Фокус на редакторе для работы горячих клавиш
         this.editor.on('focus', () => {
             document.activeEditor = this.editor;
         });
@@ -211,12 +215,16 @@ class UI {
         this.initLanguageSwitcher();
         this.initThemeSwitcher();
         this.initLoginForm();
+        this.initCreateFilePopup();
         this.initAvailabilityPopup();
     }
 
     initButtons() {
         // Save button
         document.getElementById('save').addEventListener('click', () => this.saveCurrentFile());
+        
+        // Create file button
+        document.getElementById('create-file').addEventListener('click', () => this.showCreateFilePopup());
         
         // Check Availability button
         document.getElementById('check-availability').addEventListener('click', () => this.checkDomainsAvailability());
@@ -294,10 +302,78 @@ class UI {
             const isConfig = filename.endsWith('.conf') || filename.includes('.conf-');
             const isList = filename.endsWith('.list') || filename.includes('.list-');
 
+            // Определяем, является ли файл защищенным
+            const protectedFiles = [
+                'nfqws.conf',
+                'user.list',
+                'exclude.list',
+                'auto.list',
+                'ipset.list',
+                'ipset_exclude.list'
+            ];
+            
+            const isProtected = protectedFiles.includes(filename);
+            
+            // Добавляем иконку мусорки только для незащищенных файлов (кроме логов)
+            if (!isLog && !isProtected) {
+                const trash = document.createElement('div');
+                trash.classList.add('nav-trash');
+                
+                // Создаем SVG контейнер для иконки мусорки
+                const trashSvg = document.createElement('div');
+                trashSvg.style.cssText = 'width: 15px; height: 15px;';
+                trashSvg.innerHTML = `<img src="img/Musor.svg" alt="Delete" style="width: 100%; height: 100%; filter: invert(16%) sepia(99%) saturate(2554%) hue-rotate(0deg) brightness(100%) contrast(114%);">`;
+                
+                trash.appendChild(trashSvg);
+                trash.title = this.translations.confirmDelete || "Delete file";
+
+                trash.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (!this.isAuthenticated) return;
+                    if (await this.showConfirm(this.translations.confirmDelete)) {
+                        const result = await this.removeFile(filename);
+                        if (result && result.status === 0) {
+                            // Удаляем вкладку из DOM
+                            if (tabs[filename]) {
+                                tabs[filename].remove();
+                                delete tabs[filename];
+                            }
+                            
+                            // Если удаляем текущий файл, загружаем первый доступный
+                            if (filename === currentFile) {
+                                const remainingFiles = Object.keys(tabs);
+                                if (remainingFiles.length > 0) {
+                                    await this.loadFile(remainingFiles[0]);
+                                } else {
+                                    this.editor.setValue('');
+                                    this.originalContent = '';
+                                    this.currentFilename = '';
+                                    document.getElementById('current-filename').textContent = this.translations.noFileSelected;
+                                    this.checkForChanges();
+                                }
+                            }
+                            
+                            this.showNotification(this.translations.fileDeleted, 'success');
+                        } else {
+                            this.showNotification(this.translations.error + ': Failed to delete file', 'error');
+                        }
+                    }
+                });
+
+                tab.appendChild(trash);
+            }
+
+            // Для логов добавляем кнопку очистки с иконкой веника
             if (isLog) {
                 const clear = document.createElement('div');
                 clear.classList.add('nav-clear');
-                clear.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+                
+                // Создаем контейнер для иконки веника
+                const clearSvg = document.createElement('div');
+                clearSvg.style.cssText = 'width: 15px; height: 15px;';
+                clearSvg.innerHTML = `<img src="img/Venik.svg" alt="Clear" style="width: 100%; height: 100%; filter: invert(58%) sepia(89%) saturate(576%) hue-rotate(1deg) brightness(102%) contrast(101%);">`;
+                
+                clear.appendChild(clearSvg);
                 clear.title = this.translations.confirmClear || "Clear log";
 
                 clear.addEventListener('click', async (e) => {
@@ -317,26 +393,6 @@ class UI {
                 });
 
                 tab.appendChild(clear);
-            } else if (!isConfig && !isList) {
-                tab.classList.add('secondary');
-                const trash = document.createElement('div');
-                trash.classList.add('nav-trash');
-                trash.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
-                trash.title = this.translations.confirmDelete || "Delete file";
-
-                trash.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    if (!this.isAuthenticated) return;
-                    if (await this.showConfirm(this.translations.confirmDelete)) {
-                        const result = await this.removeFile(filename);
-                        if (!result.status) {
-                            this.removeTab(filename);
-                            this.showNotification(this.translations.fileDeleted, 'success');
-                        }
-                    }
-                });
-
-                tab.appendChild(trash);
             }
 
             tab.addEventListener('click', async () => {
@@ -351,21 +407,8 @@ class UI {
         const removeTab = (filename) => {
             const tab = tabs[filename];
             if (tab) {
-                tab.parentNode.removeChild(tab);
+                tab.remove();
                 delete tabs[filename];
-
-                if (filename === currentFile) {
-                    const firstTab = Object.keys(tabs)[0];
-                    if (firstTab) {
-                        this.loadFile(firstTab);
-                    } else {
-                        this.editor.setValue('');
-                        this.originalContent = '';
-                        this.currentFilename = '';
-                        document.getElementById('current-filename').textContent = this.translations.noFileSelected;
-                        this.checkForChanges();
-                    }
-                }
             }
         };
 
@@ -376,7 +419,6 @@ class UI {
             currentFile = filename;
             document.getElementById('current-filename').textContent = filename;
             
-            // Обновляем историю при переключении вкладок
             if (this.historyManager) {
                 this.historyManager.updateCurrentFile(filename);
             }
@@ -390,6 +432,138 @@ class UI {
                 return currentFile;
             }
         };
+    }
+
+    initCreateFilePopup() {
+        const popup = document.getElementById('create-file-popup');
+        const cancelBtn = document.getElementById('create-file-cancel');
+        const confirmBtn = document.getElementById('create-file-confirm');
+        const closeBtn = popup.querySelector('.popup-close-btn');
+        const filenameInput = document.getElementById('new-filename');
+        
+        // Открытие попапа
+        document.getElementById('create-file').addEventListener('click', () => {
+            this.showCreateFilePopup();
+        });
+        
+        // Кнопка отмены
+        cancelBtn.addEventListener('click', () => {
+            this.closeCreateFilePopup();
+        });
+        
+        // Кнопка закрытия
+        closeBtn.addEventListener('click', () => {
+            this.closeCreateFilePopup();
+        });
+        
+        // Кнопка создания
+        confirmBtn.addEventListener('click', async () => {
+            await this.createNewFile();
+        });
+        
+        // Enter для создания файла
+        filenameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            }
+        });
+    }
+
+    showCreateFilePopup() {
+        if (!this.isAuthenticated) return;
+        
+        const popup = document.getElementById('create-file-popup');
+        const title = document.getElementById('create-file-title');
+        const filenameLabel = document.getElementById('filename-label');
+        const filenameHint = document.getElementById('filename-hint');
+        const extensionLabel = document.getElementById('extension-label');
+        const cancelBtn = document.getElementById('create-file-cancel');
+        const confirmBtn = document.getElementById('create-file-confirm');
+        
+        // Устанавливаем переводы
+        title.textContent = this.translations.createFile || 'Create New File';
+        filenameLabel.textContent = this.translations.filenameLabel || 'File name (without extension)';
+        filenameHint.textContent = this.translations.filenameHint || 'Enter file name without extension';
+        extensionLabel.textContent = this.translations.extensionLabel || 'File type';
+        cancelBtn.textContent = this.translations.cancel || 'Cancel';
+        confirmBtn.textContent = this.translations.confirm || 'Confirm';
+        
+        // Устанавливаем переводы для радиокнопок
+        const listFileText = document.querySelector('.radio-text:nth-child(1)');
+        const configFileText = document.querySelector('.radio-text:nth-child(2)');
+        if (listFileText) listFileText.textContent = this.translations.listFile || '.list file';
+        if (configFileText) configFileText.textContent = this.translations.configFile || '.conf file';
+        
+        // Очищаем поле ввода
+        document.getElementById('new-filename').value = '';
+        
+        // Устанавливаем .list по умолчанию
+        document.querySelector('input[name="filetype"][value=".list"]').checked = true;
+        
+        popup.classList.remove('hidden');
+        document.body.classList.add('disabled');
+        
+        // Фокус на поле ввода
+        setTimeout(() => {
+            document.getElementById('new-filename').focus();
+        }, 100);
+    }
+
+    closeCreateFilePopup() {
+        const popup = document.getElementById('create-file-popup');
+        popup.classList.add('hidden');
+        document.body.classList.remove('disabled');
+    }
+
+    async createNewFile() {
+        const filenameInput = document.getElementById('new-filename');
+        const filename = filenameInput.value.trim();
+        
+        if (!filename) {
+            this.showNotification(this.translations.error + ': Please enter file name', 'error');
+            return;
+        }
+        
+        // Проверяем допустимые символы
+        if (!/^[a-zA-Z0-9_.-]+$/.test(filename)) {
+            this.showNotification(this.translations.error + ': Invalid file name. Use only letters, numbers, dots, hyphens and underscores', 'error');
+            return;
+        }
+        
+        // Получаем выбранное расширение
+        const fileType = document.querySelector('input[name="filetype"]:checked').value;
+        const fullFilename = filename + fileType;
+        
+        // Проверяем, существует ли файл
+        try {
+            const existingFiles = await this.getFiles();
+            if (existingFiles.files && existingFiles.files.includes(fullFilename)) {
+                this.showNotification(this.translations.fileExists || 'File already exists', 'error');
+                return;
+            }
+            
+            // Создаем пустой файл
+            const result = await this.saveFile(fullFilename, '');
+            
+            if (result && result.status === 0) {
+                // Добавляем вкладку
+                this.tabs.add(fullFilename);
+                
+                // Загружаем созданный файл
+                await this.loadFile(fullFilename);
+                
+                // Закрываем попап
+                this.closeCreateFilePopup();
+                
+                // Показываем уведомление
+                this.showNotification(this.translations.fileCreated || 'File created successfully', 'success');
+            } else {
+                this.showNotification(this.translations.fileCreationFailed || 'Failed to create file', 'error');
+            }
+        } catch (error) {
+            console.error('Error creating file:', error);
+            this.showNotification(this.translations.fileCreationFailed || 'Failed to create file', 'error');
+        }
     }
 
     initLoginForm() {
@@ -436,13 +610,11 @@ class UI {
             }
         });
         
-        // Close button for login form
         closeButton.addEventListener('click', () => {
             loginForm.classList.add('hidden');
             document.body.classList.remove('disabled');
         });
         
-        // Enter key для логина
         loginInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 passwordInput.focus();
@@ -464,12 +636,26 @@ class UI {
         closeBtn.addEventListener('click', () => {
             popup.classList.add('hidden');
             document.body.classList.remove('disabled');
+            this.resetAvailabilityUI();
         });
         
         headerCloseBtn.addEventListener('click', () => {
             popup.classList.add('hidden');
             document.body.classList.remove('disabled');
+            this.resetAvailabilityUI();
         });
+    }
+
+    resetAvailabilityUI() {
+        // Сбрасываем состояние проверки
+        this.checkInProgress = false;
+        const checkButton = document.getElementById('check-availability');
+        checkButton.disabled = false;
+        checkButton.classList.remove('disabled');
+        
+        // Восстанавливаем оригинальный текст кнопки
+        const originalText = this.translations.checkAvailability || 'Check Availability';
+        checkButton.querySelector('span').textContent = originalText;
     }
 
     showLoginForm() {
@@ -499,17 +685,14 @@ class UI {
         this.resolveCallback = null;
         let isProcessing = false;
 
-        // Close buttons
         buttonClose.addEventListener('click', () => {
             this.closePopup(popup, false);
         });
 
-        // Close button in header
         closeButton.addEventListener('click', () => {
             this.closePopup(popup, false);
         });
 
-        // Yes/No buttons
         buttonYes.addEventListener('click', () => {
             if (!isProcessing) {
                 this.closePopup(popup, true);
@@ -522,7 +705,6 @@ class UI {
             }
         });
 
-        // Store methods
         this.showAlert = (message, title = '') => {
             return new Promise((resolve) => {
                 content.textContent = message;
@@ -599,7 +781,6 @@ class UI {
     initLanguageSwitcher() {
         const switcher = document.getElementById('language-switcher');
         
-        // Устанавливаем активный язык при загрузке
         this.updateLanguageSwitcher();
         
         switcher.addEventListener('click', (e) => {
@@ -642,7 +823,8 @@ class UI {
         document.getElementById('start-text').textContent = this.translations.start;
         document.getElementById('update-text').textContent = this.translations.update;
         document.getElementById('save-fs-text').textContent = this.translations.save;
-        document.getElementById('check-availability-text').textContent = this.translations.checkAvailability || 'Проверить доступность';
+        document.getElementById('create-file-text').textContent = this.translations.newFile || 'New File';
+        document.getElementById('check-availability-text').textContent = this.translations.checkAvailability || 'Check Availability';
         
         // Popup buttons
         document.getElementById('popup-yes').textContent = this.translations.yes;
@@ -653,20 +835,39 @@ class UI {
         document.getElementById('login-title').textContent = this.translations.login;
         document.getElementById('login-button').textContent = this.translations.login;
         
+        // Create file popup
+        const createTitle = document.getElementById('create-file-title');
+        const filenameLabel = document.getElementById('filename-label');
+        const filenameHint = document.getElementById('filename-hint');
+        const extensionLabel = document.getElementById('extension-label');
+        const listFileText = document.querySelector('.radio-text:nth-child(1)');
+        const configFileText = document.querySelector('.radio-text:nth-child(2)');
+        const cancelBtn = document.getElementById('create-file-cancel');
+        const confirmBtn = document.getElementById('create-file-confirm');
+        
+        if (createTitle) createTitle.textContent = this.translations.createFile || 'Create New File';
+        if (filenameLabel) filenameLabel.textContent = this.translations.filenameLabel || 'File name (without extension)';
+        if (filenameHint) filenameHint.textContent = this.translations.filenameHint || 'Enter file name without extension';
+        if (extensionLabel) extensionLabel.textContent = this.translations.extensionLabel || 'File type';
+        if (listFileText) listFileText.textContent = this.translations.listFile || '.list file';
+        if (configFileText) configFileText.textContent = this.translations.configFile || '.conf file';
+        if (cancelBtn) cancelBtn.textContent = this.translations.cancel || 'Cancel';
+        if (confirmBtn) confirmBtn.textContent = this.translations.confirm || 'Confirm';
+        
         // Availability popup
-        document.getElementById('availability-title').textContent = this.translations.checkingDomains || 'Проверка доступности доменов';
-        document.getElementById('availability-close').textContent = this.translations.close || 'Закрыть';
+        const availabilityTitle = document.getElementById('availability-title');
+        const totalLabel = document.querySelector('.info-row:nth-child(1) .info-label');
+        const accessibleLabel = document.querySelector('.info-row:nth-child(2) .info-label');
+        const blockedLabel = document.querySelector('.info-row:nth-child(3) .info-label');
+        const progressLabel = document.querySelector('.info-row:nth-child(4) .info-label');
+        const closeBtn = document.getElementById('availability-close');
         
-        // Statistics labels
-        const totalLabel = document.querySelector('.stat-item:nth-child(1) .stat-label');
-        const accessibleLabel = document.querySelector('.stat-item:nth-child(2) .stat-label');
-        const blockedLabel = document.querySelector('.stat-item:nth-child(3) .stat-label');
-        const progressLabel = document.querySelector('.stat-item:nth-child(4) .stat-label');
-        
-        if (totalLabel) totalLabel.textContent = this.translations.totalDomains || 'Всего';
-        if (accessibleLabel) accessibleLabel.textContent = this.translations.accessibleDomains || 'Доступны';
-        if (blockedLabel) blockedLabel.textContent = this.translations.blockedDomains || 'Заблокированы';
-        if (progressLabel) progressLabel.textContent = this.translations.progress || 'Прогресс';
+        if (availabilityTitle) availabilityTitle.textContent = this.translations.checkingDomains || 'Checking domain availability...';
+        if (totalLabel) totalLabel.textContent = this.translations.totalDomains || 'Total domains:';
+        if (accessibleLabel) accessibleLabel.textContent = this.translations.accessibleDomains || 'Accessible:';
+        if (blockedLabel) blockedLabel.textContent = this.translations.blockedDomains || 'Blocked:';
+        if (progressLabel) progressLabel.textContent = this.translations.progress || 'Progress:';
+        if (closeBtn) closeBtn.textContent = this.translations.close || 'Close';
         
         // Editor
         if (this.editor) {
@@ -682,7 +883,8 @@ class UI {
         document.getElementById('theme').title = this.translations.themeLight;
         document.getElementById('logout').title = this.translations.logout;
         document.getElementById('language-switcher').title = this.translations.language;
-        document.getElementById('check-availability').title = this.translations.checkAvailability || 'Проверить доступность доменов';
+        document.getElementById('create-file').title = this.translations.newFile || 'Create new file';
+        document.getElementById('check-availability').title = this.translations.checkAvailability || 'Check domain availability';
     }
 
     toggleTheme() {
@@ -704,7 +906,6 @@ class UI {
         const fsButton = document.getElementById('editor-fullscreen');
         
         if (editorContainer.classList.contains('fullscreen')) {
-            // Плавное закрытие
             editorContainer.classList.add('closing');
             fsButton.title = this.translations.fullscreen;
             
@@ -712,25 +913,20 @@ class UI {
                 editorContainer.classList.remove('fullscreen', 'closing');
                 document.body.classList.remove('fullscreen-active');
                 
-                // Восстанавливаем стандартную иконку
                 fsButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>';
                 
-                // Скрываем кнопку Save в normal режиме
                 const saveFsButton = document.getElementById('save-fullscreen');
                 if (!document.body.classList.contains('changed')) {
                     saveFsButton.style.display = 'none';
                 }
             }, 500);
         } else {
-            // Плавное открытие
             editorContainer.classList.add('fullscreen');
             document.body.classList.add('fullscreen-active');
             fsButton.title = this.translations.exitFullscreen;
             
-            // Меняем иконку на "выход из fullscreen"
             fsButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>';
             
-            // Показываем кнопку Save в fullscreen
             const saveFsButton = document.getElementById('save-fullscreen');
             saveFsButton.style.display = 'inline-flex';
         }
@@ -748,7 +944,7 @@ class UI {
         
         const filename = this.tabs.currentFileName;
         if (!filename || (!filename.endsWith('.list') && !filename.includes('.list-'))) {
-            this.showNotification(this.translations.selectListFile || 'Выберите файл .list для проверки доменов', 'error');
+            this.showNotification(this.translations.selectListFile || 'Select a .list file to check domains', 'error');
             return;
         }
         
@@ -759,20 +955,17 @@ class UI {
             const domains = this.extractDomainsFromContent(content);
             
             if (domains.length === 0) {
-                this.showNotification(this.translations.noDomainsFound || 'Домены не найдены в файле', 'error');
+                this.showNotification(this.translations.noDomainsFound || 'No domains found in the file', 'error');
                 this.checkInProgress = false;
                 return;
             }
             
-            // Show availability popup
             this.showAvailabilityPopup(domains);
-            
-            // Start checking domains
             await this.checkDomains(domains);
             
         } catch (error) {
             console.error('Error checking domains:', error);
-            this.showNotification('Ошибка проверки доменов: ' + error.message, 'error');
+            this.showNotification('Error checking domains: ' + error.message, 'error');
             this.checkInProgress = false;
         }
     }
@@ -784,33 +977,18 @@ class UI {
         for (const line of lines) {
             const trimmedLine = line.trim();
             
-            // Skip empty lines and comments
             if (!trimmedLine || trimmedLine.startsWith('#') || trimmedLine.startsWith('//')) {
                 continue;
             }
             
-            // Extract domain from line (supports various formats)
             let domain = trimmedLine;
-            
-            // Remove leading http:// or https://
             domain = domain.replace(/^(https?:\/\/)/, '');
-            
-            // Remove leading www.
             domain = domain.replace(/^www\./, '');
-            
-            // Remove everything after # (comments)
             domain = domain.split('#')[0].trim();
-            
-            // Remove everything after / (paths)
             domain = domain.split('/')[0];
-            
-            // Remove port numbers
             domain = domain.split(':')[0];
-            
-            // Remove whitespace
             domain = domain.trim();
             
-            // Validate domain format (basic validation)
             if (domain && /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain)) {
                 domains.add(domain);
             }
@@ -827,26 +1005,26 @@ class UI {
         const blockedDomains = document.getElementById('blocked-domains');
         const progress = document.getElementById('progress');
         const progressBar = document.getElementById('progress-bar');
-        const domainsList = document.getElementById('domains-list');
+        const resultsContainer = document.getElementById('results-container');
         
-        title.textContent = this.translations.checkingDomains || 'Проверка доступности доменов...';
+        title.textContent = this.translations.checkingDomains || 'Checking domain availability...';
         totalDomains.textContent = domains.length;
         accessibleDomains.textContent = '0';
         blockedDomains.textContent = '0';
         progress.textContent = '0%';
         progressBar.style.width = '0%';
-        domainsList.innerHTML = '';
+        resultsContainer.innerHTML = '';
         
-        // Create domain list container
+        // Создаем контейнер для результатов
         domains.forEach(domain => {
             const domainItem = document.createElement('div');
-            domainItem.className = 'domain-item pending';
+            domainItem.className = 'domain-result pending';
             domainItem.dataset.domain = domain;
             domainItem.innerHTML = `
                 <span class="domain-name">${domain}</span>
-                <span class="domain-status">⏳ ${this.translations.checkingDomain?.replace('{domain}', '') || 'Проверка...'}</span>
+                <span class="domain-status">⏳ ${this.translations.checkingDomain || 'Checking...'}</span>
             `;
-            domainsList.appendChild(domainItem);
+            resultsContainer.appendChild(domainItem);
         });
         
         popup.classList.remove('hidden');
@@ -859,18 +1037,16 @@ class UI {
         let accessible = 0;
         let blocked = 0;
         
-        // Update button state
         const checkButton = document.getElementById('check-availability');
         const originalText = checkButton.querySelector('span').textContent;
         checkButton.disabled = true;
         checkButton.classList.add('disabled');
-        checkButton.querySelector('span').textContent = '⏳ Проверка...';
+        checkButton.querySelector('span').textContent = '⏳ Checking...';
         
         const checkPromises = domains.map(async (domain) => {
             try {
                 const isAccessible = await this.checkDomainAccessibility(domain);
                 
-                // Update counters
                 checked++;
                 if (isAccessible) {
                     accessible++;
@@ -878,10 +1054,8 @@ class UI {
                     blocked++;
                 }
                 
-                // Update UI
                 this.updateAvailabilityUI(domain, isAccessible, checked, total, accessible, blocked);
                 
-                // Small delay to avoid overwhelming the network
                 await new Promise(resolve => setTimeout(resolve, 50));
                 
                 return { domain, accessible: isAccessible };
@@ -894,25 +1068,22 @@ class UI {
         });
         
         try {
-            // Check domains in batches of 10 to avoid overwhelming
             const batchSize = 10;
             for (let i = 0; i < checkPromises.length; i += batchSize) {
                 const batch = checkPromises.slice(i, i + batchSize);
                 await Promise.all(batch);
             }
             
-            // All checks completed
-            this.showNotification(`${this.translations.domainCheckComplete || 'Проверка доменов завершена'}: ${accessible} доступны, ${blocked} заблокированы`, 'success');
+            this.showNotification(`${this.translations.domainCheckComplete || 'Domain check completed'}: ${accessible} accessible, ${blocked} blocked`, 'success');
             
-            // Update popup title
             document.getElementById('availability-title').textContent = 
-                `${this.translations.domainCheckComplete || 'Проверка доменов завершена'}`;
+                `${this.translations.domainCheckComplete || 'Domain check completed'}`;
             
         } catch (error) {
             console.error('Domain check error:', error);
+            this.showNotification('Error checking domains: ' + error.message, 'error');
         } finally {
             this.checkInProgress = false;
-            // Restore button state
             checkButton.disabled = false;
             checkButton.classList.remove('disabled');
             checkButton.querySelector('span').textContent = originalText;
@@ -920,15 +1091,13 @@ class UI {
     }
 
     async checkDomainAccessibility(domain) {
-        // Try different methods to check domain accessibility
         return new Promise((resolve, reject) => {
-            const timeout = 3000; // 3 seconds timeout
+            const timeout = 3000;
             
-            // Method 1: Fetch with timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
                 controller.abort();
-                reject(new Error('Таймаут'));
+                reject(new Error('Timeout'));
             }, timeout);
             
             fetch(`https://${domain}`, {
@@ -941,15 +1110,11 @@ class UI {
             })
             .then(response => {
                 clearTimeout(timeoutId);
-                // In no-cors mode, we can't read the response status
-                // If we get a response, the domain is accessible
                 resolve(true);
             })
             .catch(error => {
                 clearTimeout(timeoutId);
-                // Try alternative method
                 this.checkWithImage(domain).then(resolve).catch(() => {
-                    // Try one more method with HTTP
                     this.checkWithHttp(domain).then(resolve).catch(() => resolve(false));
                 });
             });
@@ -964,7 +1129,7 @@ class UI {
             const timeoutId = setTimeout(() => {
                 img.onerror = null;
                 img.onload = null;
-                reject(new Error('Таймаут'));
+                reject(new Error('Timeout'));
             }, timeout);
             
             img.onload = () => {
@@ -974,10 +1139,9 @@ class UI {
             
             img.onerror = () => {
                 clearTimeout(timeoutId);
-                reject(new Error('Изображение не загрузилось'));
+                reject(new Error('Image not loaded'));
             };
             
-            // Try to load favicon or a small image
             img.src = `https://${domain}/favicon.ico?t=${Date.now()}`;
         });
     }
@@ -995,11 +1159,11 @@ class UI {
             };
             
             xhr.ontimeout = () => {
-                reject(new Error('Таймаут'));
+                reject(new Error('Timeout'));
             };
             
             xhr.onerror = () => {
-                reject(new Error('Ошибка сети'));
+                reject(new Error('Network error'));
             };
             
             xhr.open('HEAD', `http://${domain}`, true);
@@ -1008,7 +1172,6 @@ class UI {
     }
 
     updateAvailabilityUI(domain, isAccessible, checked, total, accessible, blocked) {
-        // Update statistics
         document.getElementById('total-domains').textContent = total;
         document.getElementById('accessible-domains').textContent = accessible;
         document.getElementById('blocked-domains').textContent = blocked;
@@ -1017,15 +1180,14 @@ class UI {
         document.getElementById('progress').textContent = `${progressPercent}%`;
         document.getElementById('progress-bar').style.width = `${progressPercent}%`;
         
-        // Update individual domain status
-        const domainItem = document.querySelector(`.domain-item[data-domain="${domain}"]`);
+        const domainItem = document.querySelector(`.domain-result[data-domain="${domain}"]`);
         if (domainItem) {
-            domainItem.className = isAccessible ? 'domain-item accessible' : 'domain-item blocked';
+            domainItem.className = isAccessible ? 'domain-result accessible' : 'domain-result blocked';
             domainItem.innerHTML = `
                 <span class="domain-name">${domain}</span>
                 <span class="domain-status">${isAccessible ? 
-                    (this.translations.domainAccessible || 'Доступен') : 
-                    (this.translations.domainBlocked || 'Заблокирован')}</span>
+                    (this.translations.domainAccessible || '✓ Accessible') : 
+                    (this.translations.domainBlocked || '✗ Blocked')}</span>
             `;
         }
     }
@@ -1053,7 +1215,6 @@ class UI {
     async loadFile(filename) {
         if (!this.isAuthenticated) return;
         
-        // Проверяем наличие несохраненных изменений
         if (document.body.classList.contains('changed')) {
             const confirm = await this.showConfirm(
                 this.translations.confirmClose,
@@ -1070,14 +1231,12 @@ class UI {
             this.editor.setValue(content);
             this.originalContent = content;
             
-            // Устанавливаем режим shell для всех файлов с .conf в названии
             const isConfigFile = filename.includes('.conf') || filename.includes('.conf-');
             this.editor.setOption('mode', isConfigFile ? 'shell' : 'text/plain');
             this.editor.setOption('readOnly', filename.endsWith('.log'));
             
             document.body.classList.remove('changed');
             
-            // Обновляем историю при загрузке нового файла
             if (this.historyManager) {
                 this.historyManager.clear();
                 this.historyManager.updateCurrentFile(filename);
@@ -1102,10 +1261,8 @@ class UI {
                 this.originalContent = this.editor.getValue();
                 document.body.classList.remove('changed');
                 
-                // Показываем уведомление в правом верхнем углу
                 this.showNotification(this.translations.fileSaved, 'success');
                 
-                // Обновляем историю после сохранения
                 if (this.historyManager) {
                     this.historyManager.updateCurrentFile(filename);
                 }
@@ -1163,7 +1320,6 @@ class UI {
             }
             
             if (action === 'upgrade') {
-                // Обновляем версию в футере
                 const result = await this.postData({ cmd: 'getversion' });
                 if (result && result.status === 0 && result.version) {
                     document.getElementById('version').textContent = `v${result.version}`;
@@ -1183,7 +1339,6 @@ class UI {
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
         
-        // Уведомления всегда показываются справа
         notification.style.cssText = `
             position: fixed;
             top: 96px;
@@ -1261,7 +1416,6 @@ class UI {
     }
 }
 
-// Класс для управления историей изменений
 class HistoryManager {
     constructor() {
         this.history = {};
@@ -1272,7 +1426,6 @@ class HistoryManager {
     init(editor) {
         this.editor = editor;
         
-        // Обработчик изменений для сохранения истории
         this.editor.on('change', (cm, change) => {
             if (this.currentFile) {
                 this.addToHistory(change);
@@ -1295,12 +1448,10 @@ class HistoryManager {
         
         const fileHistory = this.history[this.currentFile];
         
-        // Добавляем изменение в историю
         fileHistory.changes = fileHistory.changes.slice(0, fileHistory.currentIndex + 1);
         fileHistory.changes.push(change);
         fileHistory.currentIndex++;
         
-        // Ограничиваем размер истории
         if (fileHistory.changes.length > this.maxHistorySize) {
             fileHistory.changes.shift();
             fileHistory.currentIndex--;
@@ -1329,7 +1480,6 @@ class HistoryManager {
     }
 }
 
-// Класс для управления горячими клавишами
 class KeyboardShortcuts {
     constructor(ui) {
         this.ui = ui;
@@ -1337,33 +1487,26 @@ class KeyboardShortcuts {
     }
 
     init() {
-        // Обработчик глобальных горячих клавиш
         document.addEventListener('keydown', (e) => {
-            // Ctrl+S или Cmd+S для сохранения
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault(); // Предотвращаем стандартное сохранение страницы
+                e.preventDefault();
                 if (this.ui.isAuthenticated) {
                     this.ui.saveCurrentFile();
                 }
                 return false;
             }
             
-            // Ctrl+Z или Cmd+Z для отмены - позволяем CodeMirror обработать
             if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-                // Разрешаем CodeMirror обработать стандартным образом
                 return true;
             }
             
-            // Ctrl+Y или Ctrl+Shift+Z для повтора
             if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
-                // Разрешаем CodeMirror обработать стандартным образом
                 return true;
             }
         });
     }
 }
 
-// Start the UI
 document.addEventListener('DOMContentLoaded', () => {
     window.ui = new UI();
 });
