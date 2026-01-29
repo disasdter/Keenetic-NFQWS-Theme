@@ -65,5 +65,6 @@
     "fileCreated": "File created successfully",
     "fileCreationFailed": "Failed to create file",
     "fileExists": "File already exists",
-    "protectedFile": "This file is protected and cannot be deleted"
+    "protectedFile": "This file is protected and cannot be deleted",
+    "domainCheckCompleted": "Domain check completed: {accessible} accessible, {blocked} blocked"
 }

@@ -685,7 +685,7 @@ body.fullscreen-active footer {
 }
 
 [data-theme="dark"] .CodeMirror-gutters {
-    background: #252525 !important;
+    background: #1b1b1c !important;
 }
 
 .CodeMirror-gutters {

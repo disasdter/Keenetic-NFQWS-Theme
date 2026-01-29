@@ -119,6 +119,7 @@ class UI {
                 checkAvailability: "Check Availability",
                 checkingDomains: "Checking domain availability...",
                 domainCheckComplete: "Domain check completed",
+                domainCheckCompleted: "Domain check completed: {accessible} accessible, {blocked} blocked",
                 totalDomains: "Total domains:",
                 accessibleDomains: "Accessible:",
                 blockedDomains: "Blocked:",
@@ -965,7 +966,7 @@ class UI {
             
         } catch (error) {
             console.error('Error checking domains:', error);
-            this.showNotification('Error checking domains: ' + error.message, 'error');
+            this.showNotification(this.translations.error + ': ' + error.message, 'error');
             this.checkInProgress = false;
         }
     }
@@ -1041,7 +1042,7 @@ class UI {
         const originalText = checkButton.querySelector('span').textContent;
         checkButton.disabled = true;
         checkButton.classList.add('disabled');
-        checkButton.querySelector('span').textContent = '⏳ Checking...';
+        checkButton.querySelector('span').textContent = '⏳ ' + (this.translations.checkingDomains || 'Checking...');
         
         const checkPromises = domains.map(async (domain) => {
             try {
@@ -1074,14 +1075,21 @@ class UI {
                 await Promise.all(batch);
             }
             
-            this.showNotification(`${this.translations.domainCheckComplete || 'Domain check completed'}: ${accessible} accessible, ${blocked} blocked`, 'success');
+            // Используем новый перевод с заменой переменных
+            const message = this.translations.domainCheckCompleted 
+                ? this.translations.domainCheckCompleted
+                    .replace('{accessible}', accessible)
+                    .replace('{blocked}', blocked)
+                : `${this.translations.domainCheckComplete || 'Domain check completed'}: ${accessible} accessible, ${blocked} blocked`;
+            
+            this.showNotification(message, 'success');
             
             document.getElementById('availability-title').textContent = 
-                `${this.translations.domainCheckComplete || 'Domain check completed'}`;
+                this.translations.domainCheckComplete || 'Domain check completed';
             
         } catch (error) {
             console.error('Domain check error:', error);
-            this.showNotification('Error checking domains: ' + error.message, 'error');
+            this.showNotification(this.translations.error + ': ' + error.message, 'error');
         } finally {
             this.checkInProgress = false;
             checkButton.disabled = false;

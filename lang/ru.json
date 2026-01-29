@@ -65,5 +65,6 @@
     "fileCreated": "Файл успешно создан",
     "fileCreationFailed": "Не удалось создать файл",
     "fileExists": "Файл уже существует",
-    "protectedFile": "Этот файл защищен и не может быть удален"
+    "protectedFile": "Этот файл защищен и не может быть удален",
+    "domainCheckCompleted": "Проверка доменов завершена: {accessible} доступны, {blocked} заблокированы"
 }
