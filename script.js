@@ -128,7 +128,19 @@ class UI {
                 domainBlocked: "✗ Blocked",
                 noDomainsFound: "No domains found in the file",
                 selectListFile: "Select a .list file to check domains",
-                checkingDomain: "Checking..."
+                checkingDomain: "Checking...",
+                invalidFilename: "Invalid file name. Use only letters, numbers, dots, hyphens and underscores",
+                enterCredentials: "Please enter login and password",
+                loginFailed: "Login failed",
+                loginError: "Login error",
+                executing: "Executing: nfqws-keenetic",
+                authCheckError: "Auth check error",
+                failedToLoadFile: "Failed to load file",
+                failedToSaveFile: "Failed to save file",
+                failedToDeleteFile: "Failed to delete file",
+                clearLog: "Clear log",
+                deleteFile: "Delete file",
+                editFile: "Edit file"
             };
         }
     }
@@ -326,7 +338,7 @@ class UI {
                 trashSvg.innerHTML = `<img src="img/Musor.svg" alt="Delete" style="width: 100%; height: 100%; filter: invert(16%) sepia(99%) saturate(2554%) hue-rotate(0deg) brightness(100%) contrast(114%);">`;
                 
                 trash.appendChild(trashSvg);
-                trash.title = this.translations.confirmDelete || "Delete file";
+                trash.title = this.translations.deleteFile || "Delete file";
 
                 trash.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -356,7 +368,7 @@ class UI {
                             
                             this.showNotification(this.translations.fileDeleted, 'success');
                         } else {
-                            this.showNotification(this.translations.error + ': Failed to delete file', 'error');
+                            this.showNotification(this.translations.error + ': ' + this.translations.failedToDeleteFile, 'error');
                         }
                     }
                 });
@@ -375,7 +387,7 @@ class UI {
                 clearSvg.innerHTML = `<img src="img/Venik.svg" alt="Clear" style="width: 100%; height: 100%; filter: invert(58%) sepia(89%) saturate(576%) hue-rotate(1deg) brightness(102%) contrast(101%);">`;
                 
                 clear.appendChild(clearSvg);
-                clear.title = this.translations.confirmClear || "Clear log";
+                clear.title = this.translations.clearLog || "Clear log";
 
                 clear.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -521,13 +533,13 @@ class UI {
         const filename = filenameInput.value.trim();
         
         if (!filename) {
-            this.showNotification(this.translations.error + ': Please enter file name', 'error');
+            this.showNotification(this.translations.error + ': ' + (this.translations.enterCredentials || 'Please enter login and password'), 'error');
             return;
         }
         
         // Проверяем допустимые символы
         if (!/^[a-zA-Z0-9_.-]+$/.test(filename)) {
-            this.showNotification(this.translations.error + ': Invalid file name. Use only letters, numbers, dots, hyphens and underscores', 'error');
+            this.showNotification(this.translations.error + ': ' + (this.translations.invalidFilename || 'Invalid file name. Use only letters, numbers, dots, hyphens and underscores'), 'error');
             return;
         }
         
@@ -583,7 +595,7 @@ class UI {
             const password = passwordInput.value;
             
             if (!user || !password) {
-                this.showNotification(this.translations.error + ': Please enter login and password', 'error');
+                this.showNotification(this.translations.error + ': ' + (this.translations.enterCredentials || 'Please enter login and password'), 'error');
                 return;
             }
             
@@ -603,11 +615,11 @@ class UI {
                     
                     await this.loadFiles();
                 } else {
-                    this.showNotification(this.translations.error + ': Login failed', 'error');
+                    this.showNotification(this.translations.error + ': ' + (this.translations.loginFailed || 'Login failed'), 'error');
                     passwordInput.value = '';
                 }
             } catch (error) {
-                this.showNotification(this.translations.error + ': Login error', 'error');
+                this.showNotification(this.translations.error + ': ' + (this.translations.loginError || 'Login error'), 'error');
             }
         });
         
@@ -1253,7 +1265,7 @@ class UI {
             this.editor.focus();
         } catch (error) {
             console.error('Error loading file:', error);
-            this.showNotification(`${this.translations.error}: Failed to load file`, 'error');
+            this.showNotification(this.translations.error + ': ' + (this.translations.failedToLoadFile || 'Failed to load file'), 'error');
         }
     }
 
@@ -1277,7 +1289,7 @@ class UI {
             }
         } catch (error) {
             console.error('Error saving file:', error);
-            this.showNotification(`${this.translations.error}: Failed to save file`, 'error');
+            this.showNotification(this.translations.error + ': ' + (this.translations.failedToSaveFile || 'Failed to save file'), 'error');
         }
     }
 
@@ -1310,7 +1322,7 @@ class UI {
         if (!confirm) return;
 
         const success = await this.showProcessing(
-            `Executing: nfqws-keenetic ${action}`,
+            `${this.translations.executing || 'Executing: nfqws-keenetic'} ${action}`,
             () => this.serviceActionRequest(action),
             this.translations.processing || 'Processing'
         );

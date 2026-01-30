@@ -66,5 +66,17 @@
     "fileCreationFailed": "Failed to create file",
     "fileExists": "File already exists",
     "protectedFile": "This file is protected and cannot be deleted",
-    "domainCheckCompleted": "Domain check completed: {accessible} accessible, {blocked} blocked"
+    "domainCheckCompleted": "Domain check completed: {accessible} accessible, {blocked} blocked",
+    "invalidFilename": "Invalid file name. Use only letters, numbers, dots, hyphens and underscores",
+    "enterCredentials": "Please enter login and password",
+    "loginFailed": "Login failed",
+    "loginError": "Login error",
+    "executing": "Executing: nfqws-keenetic",
+    "authCheckError": "Auth check error",
+    "failedToLoadFile": "Failed to load file",
+    "failedToSaveFile": "Failed to save file",
+    "failedToDeleteFile": "Failed to delete file",
+    "clearLog": "Clear log",
+    "deleteFile": "Delete file",
+    "editFile": "Edit file"
 }

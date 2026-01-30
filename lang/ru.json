@@ -66,5 +66,17 @@
     "fileCreationFailed": "Не удалось создать файл",
     "fileExists": "Файл уже существует",
     "protectedFile": "Этот файл защищен и не может быть удален",
-    "domainCheckCompleted": "Проверка доменов завершена: {accessible} доступны, {blocked} заблокированы"
+    "domainCheckCompleted": "Проверка доменов завершена: {accessible} доступны, {blocked} заблокированы",
+    "invalidFilename": "Недопустимое имя файла. Используйте только буквы, цифры, точки, дефисы и подчеркивания",
+    "enterCredentials": "Пожалуйста, введите логин и пароль",
+    "loginFailed": "Ошибка входа",
+    "loginError": "Ошибка авторизации",
+    "executing": "Выполнение: nfqws-keenetic",
+    "authCheckError": "Ошибка проверки авторизации",
+    "failedToLoadFile": "Не удалось загрузить файл",
+    "failedToSaveFile": "Не удалось сохранить файл",
+    "failedToDeleteFile": "Не удалось удалить файл",
+    "clearLog": "Очистить лог",
+    "deleteFile": "Удалить файл",
+    "editFile": "Редактировать файл"
 }
