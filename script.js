@@ -9,6 +9,7 @@ class UI {
         this.checkInProgress = false;
         this.historyManager = new HistoryManager();
         this.keyboardShortcuts = new KeyboardShortcuts(this);
+        this.currentDomains = []; // Сохраняем текущие домены для повторной проверки
         
         this.init();
     }
@@ -140,7 +141,9 @@ class UI {
                 failedToDeleteFile: "Failed to delete file",
                 clearLog: "Clear log",
                 deleteFile: "Delete file",
-                editFile: "Edit file"
+                editFile: "Edit file",
+                retryCheck: "Retry Check",
+                retryCheckingDomains: "Re-checking domain availability..."
             };
         }
     }
@@ -644,12 +647,17 @@ class UI {
     initAvailabilityPopup() {
         const popup = document.getElementById('availability-results');
         const closeBtn = document.getElementById('availability-close');
+        const retryBtn = document.getElementById('availability-retry');
         const headerCloseBtn = popup.querySelector('.popup-close-btn');
         
         closeBtn.addEventListener('click', () => {
             popup.classList.add('hidden');
             document.body.classList.remove('disabled');
             this.resetAvailabilityUI();
+        });
+        
+        retryBtn.addEventListener('click', () => {
+            this.retryDomainCheck();
         });
         
         headerCloseBtn.addEventListener('click', () => {
@@ -844,6 +852,10 @@ class UI {
         document.getElementById('popup-no').textContent = this.translations.no;
         document.getElementById('popup-close').textContent = this.translations.close;
         
+        // Availability popup buttons
+        document.getElementById('availability-close').textContent = this.translations.close || 'Close';
+        document.getElementById('availability-retry').textContent = this.translations.retryCheck || 'Retry Check';
+        
         // Popup titles
         document.getElementById('login-title').textContent = this.translations.login;
         document.getElementById('login-button').textContent = this.translations.login;
@@ -873,14 +885,12 @@ class UI {
         const accessibleLabel = document.querySelector('.info-row:nth-child(2) .info-label');
         const blockedLabel = document.querySelector('.info-row:nth-child(3) .info-label');
         const progressLabel = document.querySelector('.info-row:nth-child(4) .info-label');
-        const closeBtn = document.getElementById('availability-close');
         
         if (availabilityTitle) availabilityTitle.textContent = this.translations.checkingDomains || 'Checking domain availability...';
         if (totalLabel) totalLabel.textContent = this.translations.totalDomains || 'Total domains:';
         if (accessibleLabel) accessibleLabel.textContent = this.translations.accessibleDomains || 'Accessible:';
         if (blockedLabel) blockedLabel.textContent = this.translations.blockedDomains || 'Blocked:';
         if (progressLabel) progressLabel.textContent = this.translations.progress || 'Progress:';
-        if (closeBtn) closeBtn.textContent = this.translations.close || 'Close';
         
         // Editor
         if (this.editor) {
@@ -973,11 +983,33 @@ class UI {
                 return;
             }
             
+            // Сохраняем домены для возможной повторной проверки
+            this.currentDomains = domains;
+            
             this.showAvailabilityPopup(domains);
             await this.checkDomains(domains);
             
         } catch (error) {
             console.error('Error checking domains:', error);
+            this.showNotification(this.translations.error + ': ' + error.message, 'error');
+            this.checkInProgress = false;
+        }
+    }
+
+    async retryDomainCheck() {
+        if (!this.isAuthenticated || this.checkInProgress || this.currentDomains.length === 0) return;
+        
+        this.checkInProgress = true;
+        
+        try {
+            // Обновляем заголовок попапа для повторной проверки
+            document.getElementById('availability-title').textContent = 
+                this.translations.retryCheckingDomains || 'Re-checking domain availability...';
+            
+            await this.checkDomains(this.currentDomains);
+            
+        } catch (error) {
+            console.error('Error retrying domain check:', error);
             this.showNotification(this.translations.error + ': ' + error.message, 'error');
             this.checkInProgress = false;
         }
@@ -1051,10 +1083,15 @@ class UI {
         let blocked = 0;
         
         const checkButton = document.getElementById('check-availability');
+        const retryButton = document.getElementById('availability-retry');
         const originalText = checkButton.querySelector('span').textContent;
+        
         checkButton.disabled = true;
         checkButton.classList.add('disabled');
         checkButton.querySelector('span').textContent = '⏳ ' + (this.translations.checkingDomains || 'Checking...');
+        
+        retryButton.disabled = true;
+        retryButton.classList.add('disabled');
         
         const checkPromises = domains.map(async (domain) => {
             try {
@@ -1107,6 +1144,9 @@ class UI {
             checkButton.disabled = false;
             checkButton.classList.remove('disabled');
             checkButton.querySelector('span').textContent = originalText;
+            
+            retryButton.disabled = false;
+            retryButton.classList.remove('disabled');
         }
     }
 

@@ -78,5 +78,7 @@
     "failedToDeleteFile": "Failed to delete file",
     "clearLog": "Clear log",
     "deleteFile": "Delete file",
-    "editFile": "Edit file"
+    "editFile": "Edit file",
+    "retryCheck": "Retry Check",
+    "retryCheckingDomains": "Re-checking domain availability..."
 }

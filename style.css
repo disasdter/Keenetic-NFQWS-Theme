@@ -907,6 +907,7 @@ body.disabled #overlay {
 
 .popup:not(.hidden) {
     opacity: 1;
+	min-width: 450px;
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
 }
@@ -1074,6 +1075,36 @@ body.disabled #overlay {
     background: var(--color-surface-alt);
     border-top: 0px solid  var(--color-border-light);
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+/* Availability popup footer buttons */
+#availability-results .popup-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-sm);
+}
+
+#availability-retry {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 0px solid var(--color-border);
+}
+
+#availability-retry:hover {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+}
+
+#availability-retry.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#availability-retry.disabled:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
 }
 
 .popup-yes,

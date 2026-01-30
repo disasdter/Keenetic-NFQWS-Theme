@@ -78,5 +78,7 @@
     "failedToDeleteFile": "Не удалось удалить файл",
     "clearLog": "Очистить лог",
     "deleteFile": "Удалить файл",
-    "editFile": "Редактировать файл"
+    "editFile": "Редактировать файл",
+    "retryCheck": "Проверить снова",
+    "retryCheckingDomains": "Повторная проверка доступности доменов..."
 }
