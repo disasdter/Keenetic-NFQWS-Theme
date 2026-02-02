@@ -280,15 +280,18 @@ body.changed #save {
     .save-icon,
     .create-file-icon,
     .restart-icon {
-        width: 40px;
+        width: 48px;
         padding: 0;
         justify-content: center;
+        min-height: 48px;
     }
     
     .save-icon svg,
     .create-file-icon svg,
     .restart-icon svg {
         margin-right: 0;
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -1507,28 +1510,47 @@ body.changed #save {
 /* Responsive Design */
 @media (max-width: 768px) {
     body {
-        padding: var(--space-sm);
-        gap: var(--space-sm);
+        padding: 8px;
+        gap: 8px;
     }
     
     header, nav, footer, .editor-container {
-        border-radius: var(--radius-md);
+        border-radius: 12px;
     }
     
     .logo {
         font-size: 16px;
     }
     
+    /* Увеличенные кнопки на мобильных устройствах */
     .button {
-        padding: 8px 16px;
-        font-size: 13px;
-        min-height: 36px;
+        padding: 12px 16px;
+        font-size: 14px;
+        min-height: 44px;
+        border-radius: 10px;
     }
     
+    /* Увеличенные вкладки конфигов */
     .nav-tab {
-        padding: var(--space-xs) var(--space-sm);
-        font-size: 12px;
-        height: 36px;
+        padding: 10px 14px;
+        font-size: 13px;
+        height: 44px;
+        border-radius: 10px;
+        min-width: 70px;
+    }
+    
+    /* Увеличенные иконки во вкладках */
+    .nav-trash,
+    .nav-clear {
+        width: 24px;
+        height: 24px;
+        margin-left: 6px;
+    }
+    
+    .nav-trash img,
+    .nav-clear img {
+        width: 18px !important;
+        height: 18px !important;
     }
     
     .nav-tab[data-filename$=".conf"],
@@ -1536,7 +1558,7 @@ body.changed #save {
     .nav-tab[data-filename$=".list"],
     .nav-tab[data-filename*=".list-"],
     .nav-tab[data-filename$=".log"] {
-        padding-left: 28px;
+        padding-left: 36px;
     }
     
     .nav-tab[data-filename$=".conf"]::before,
@@ -1544,14 +1566,52 @@ body.changed #save {
     .nav-tab[data-filename$=".list"]::before,
     .nav-tab[data-filename*=".list-"]::before,
     .nav-tab[data-filename$=".log"]::before {
-        left: 6px;
-        width: 12px;
-        height: 12px;
+        left: 10px;
+        width: 16px;
+        height: 16px;
     }
     
+    /* Увеличенные иконки в кнопках */
+    .save-icon svg,
+    .create-file-icon svg,
+    .restart-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* Увеличенный dropdown */
+    #dropdown {
+        width: 44px;
+        min-height: 44px;
+    }
+    
+    #dropdown svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    /* Увеличенный dropdown menu */
+    .dropdown-menu {
+        min-width: 180px;
+        padding: 10px;
+    }
+    
+    .dropdown-item {
+        padding: 10px 14px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+    
+    .dropdown-item svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Увеличенные элементы футера */
     footer {
         flex-direction: column;
-        gap: var(--space-sm);
+        gap: 10px;
+        padding: 10px;
     }
     
     .footer-left,
@@ -1559,20 +1619,69 @@ body.changed #save {
         width: 100%;
         justify-content: center;
         flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .footer-tab {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-height: 36px;
+    }
+    
+    .footer-tab svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Увеличенная кнопка проверки доступности */
+    #check-availability {
+        padding: 8px 12px;
+        font-size: 13px;
+        height: 36px;
+        min-width: 40px;
+    }
+    
+    #check-availability svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Увеличенные иконки в редакторе */
+    .icon-button {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .icon-button svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Увеличенная панель инструментов редактора */
+    .editor-toolbar {
+        padding: 10px;
+        min-height: 52px;
+        height: 52px;
+    }
+    
+    .filename {
+        font-size: 12px;
+        padding: 6px 10px;
     }
     
     .popup {
-        width: calc(100% - var(--space-xl));
+        width: calc(100% - 20px);
         max-width: none;
+        border-radius: 12px;
     }
     
     /* Responsive adjustments for availability popup */
     .availability-info {
-        padding: var(--space-sm);
+        padding: 12px;
     }
     
     .info-row {
-        font-size: 12px;
+        font-size: 13px;
     }
     
     .results-container {
@@ -1580,17 +1689,12 @@ body.changed #save {
     }
     
     .domain-result {
-        padding: 6px 8px;
-        font-size: 11px;
+        padding: 8px 10px;
+        font-size: 12px;
     }
     
     .domain-status {
-        min-width: 70px;
-    }
-    
-    #check-availability {
-        padding: 4px 8px;
-        font-size: 12px;
+        min-width: 80px;
     }
     
     #check-availability-text {
@@ -1611,15 +1715,18 @@ body.changed #save {
     .save-icon,
     .create-file-icon,
     .restart-icon {
-        width: 36px;
+        width: 48px;
         padding: 0;
         justify-content: center;
+        min-height: 48px;
     }
     
     .save-icon svg,
     .create-file-icon svg,
     .restart-icon svg {
         margin-right: 0;
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -1644,28 +1751,47 @@ body.changed #save {
         font-size: 13px;
     }
     
-    .header-controls {
-        gap: var(--space-xs);
+    body {
+        padding: 6px;
+        gap: 6px;
     }
     
+    header, nav, footer, .editor-container {
+        border-radius: 10px;
+    }
+    
+    .header-controls {
+        gap: 6px;
+    }
+    
+    /* Еще больше увеличиваем на очень маленьких экранах */
     .button {
-        padding: 6px 12px;
-        min-height: 32px;
+        padding: 10px 14px;
+        font-size: 13px;
+        min-height: 42px;
+    }
+    
+    .nav-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+        height: 42px;
+        min-width: 65px;
     }
     
     #dropdown {
-        width: 32px;
+        width: 42px;
+        min-height: 42px;
     }
     
     .save-icon,
     .create-file-icon,
     .restart-icon {
-        width: 32px;
-        min-height: 32px;
+        width: 46px;
+        min-height: 46px;
     }
     
     .editor-toolbar {
-        padding: var(--space-xs) var(--space-sm);
+        padding: 8px;
     }
     
     .filename {
@@ -1674,7 +1800,8 @@ body.changed #save {
     
     .availability-info {
         flex-direction: column;
-        gap: var(--space-xs);
+        gap: 8px;
+        padding: 10px;
     }
     
     .results-container {
@@ -1682,11 +1809,51 @@ body.changed #save {
     }
     
     .create-file-form {
-        gap: var(--space-md);
+        gap: 12px;
     }
     
     .form-input {
-        padding: var(--space-sm);
+        padding: 12px;
+        font-size: 15px;
+        min-height: 44px;
+    }
+    
+    .radio-label {
+        padding: 10px;
+    }
+    
+    /* Увеличенные кнопки в попапах */
+    .popup-yes,
+    .popup-no,
+    .popup-close {
+        padding: 10px 16px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+    
+    /* Увеличенные поля ввода в форме логина */
+    .login-input {
+        padding: 14px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+    
+    #login-button {
+        min-height: 44px;
+        font-size: 15px;
+    }
+    
+    /* Увеличенные элементы в форме создания файла */
+    .create-file-popup .form-input {
+        padding: 14px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+    
+    .create-file-popup .popup-yes,
+    .create-file-popup .popup-close {
+        min-height: 42px;
+        font-size: 15px;
     }
 }
 
@@ -1791,4 +1958,59 @@ body:not(.running) #reload {
 
 body:not(.running) #start {
     display: flex !important;
+}
+
+/* Touch-friendly styles for mobile */
+@media (hover: none) and (pointer: coarse) {
+    .button,
+    .nav-tab,
+    .footer-tab,
+    .dropdown-item,
+    .icon-button,
+    .popup-yes,
+    .popup-no,
+    .popup-close {
+        -webkit-tap-highlight-color: rgba(0, 122, 255, 0.1);
+    }
+    
+    .button:active,
+    .nav-tab:active,
+    .footer-tab:active,
+    .dropdown-item:active,
+    .icon-button:active,
+    .popup-yes:active,
+    .popup-no:active,
+    .popup-close:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+    
+    /* Увеличиваем минимальный размер для касаний */
+    .button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .nav-tab {
+        min-height: 44px;
+    }
+    
+    .footer-tab {
+        min-height: 36px;
+        min-width: 36px;
+    }
+    
+    .icon-button {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+/* Для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    .button,
+    .nav-tab,
+    .footer-tab {
+        cursor: pointer;
+    }
 }
