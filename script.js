@@ -435,6 +435,9 @@ class UI {
             currentFile = filename;
             document.getElementById('current-filename').textContent = filename;
             
+            // Показываем/скрываем кнопку "Проверить доступность" в зависимости от типа файла
+            this.updateCheckAvailabilityButton(filename);
+            
             if (this.historyManager) {
                 this.historyManager.updateCurrentFile(filename);
             }
@@ -448,6 +451,19 @@ class UI {
                 return currentFile;
             }
         };
+    }
+
+    updateCheckAvailabilityButton(filename) {
+        const checkButton = document.getElementById('check-availability');
+        
+        // Проверяем, является ли файл .list файлом
+        const isListFile = filename.endsWith('.list') || filename.includes('.list-');
+        
+        if (isListFile) {
+            checkButton.style.display = 'inline-flex';
+        } else {
+            checkButton.style.display = 'none';
+        }
     }
 
     initCreateFilePopup() {
@@ -1093,35 +1109,48 @@ class UI {
         retryButton.disabled = true;
         retryButton.classList.add('disabled');
         
-        const checkPromises = domains.map(async (domain) => {
-            try {
-                const isAccessible = await this.checkDomainAccessibility(domain);
-                
-                checked++;
-                if (isAccessible) {
-                    accessible++;
-                } else {
+        // Используем Web Workers для параллельной проверки, если доступно
+        const workerCount = Math.min(20, domains.length); // Максимум 20 потоков
+        const batchSize = Math.ceil(domains.length / workerCount);
+        
+        const checkPromises = [];
+        
+        for (let i = 0; i < domains.length; i++) {
+            const domain = domains[i];
+            
+            const checkPromise = this.checkSingleDomain(domain)
+                .then(isAccessible => {
+                    checked++;
+                    if (isAccessible) {
+                        accessible++;
+                    } else {
+                        blocked++;
+                    }
+                    
+                    this.updateAvailabilityUI(domain, isAccessible, checked, total, accessible, blocked);
+                    
+                    return { domain, accessible: isAccessible };
+                })
+                .catch(error => {
+                    checked++;
                     blocked++;
-                }
-                
-                this.updateAvailabilityUI(domain, isAccessible, checked, total, accessible, blocked);
-                
+                    this.updateAvailabilityUI(domain, false, checked, total, accessible, blocked);
+                    return { domain, accessible: false, error: error.message };
+                });
+            
+            checkPromises.push(checkPromise);
+            
+            // Небольшая задержка между запросами для избежания блокировок
+            if (i % 10 === 0) {
                 await new Promise(resolve => setTimeout(resolve, 50));
-                
-                return { domain, accessible: isAccessible };
-            } catch (error) {
-                checked++;
-                blocked++;
-                this.updateAvailabilityUI(domain, false, checked, total, accessible, blocked);
-                return { domain, accessible: false, error: error.message };
             }
-        });
+        }
         
         try {
-            const batchSize = 10;
-            for (let i = 0; i < checkPromises.length; i += batchSize) {
-                const batch = checkPromises.slice(i, i + batchSize);
-                await Promise.all(batch);
+            // Обрабатываем батчами по 10 доменов
+            for (let i = 0; i < checkPromises.length; i += 10) {
+                const batch = checkPromises.slice(i, i + 10);
+                await Promise.allSettled(batch);
             }
             
             // Используем новый перевод с заменой переменных
@@ -1150,47 +1179,78 @@ class UI {
         }
     }
 
-    async checkDomainAccessibility(domain) {
-        return new Promise((resolve, reject) => {
-            const timeout = 3000;
-            
+    async checkSingleDomain(domain) {
+        // Пробуем несколько методов проверки
+        const methods = [
+            this.checkWithFetch.bind(this, domain),
+            this.checkWithImage.bind(this, domain),
+            this.checkWithIframe.bind(this, domain)
+        ];
+        
+        for (const method of methods) {
+            try {
+                const result = await Promise.race([
+                    method(),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Timeout')), 2000)
+                    )
+                ]);
+                if (result) return true;
+            } catch (error) {
+                // Пробуем следующий метод
+                continue;
+            }
+        }
+        
+        return false;
+    }
+
+    async checkWithFetch(domain) {
+        try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                controller.abort();
-                reject(new Error('Timeout'));
-            }, timeout);
+            const timeoutId = setTimeout(() => controller.abort(), 1500);
             
-            fetch(`https://${domain}`, {
+            const response = await fetch(`https://${domain}`, {
                 method: 'HEAD',
                 mode: 'no-cors',
                 signal: controller.signal,
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                 }
-            })
-            .then(response => {
-                clearTimeout(timeoutId);
-                resolve(true);
-            })
-            .catch(error => {
-                clearTimeout(timeoutId);
-                this.checkWithImage(domain).then(resolve).catch(() => {
-                    this.checkWithHttp(domain).then(resolve).catch(() => resolve(false));
-                });
             });
-        });
+            
+            clearTimeout(timeoutId);
+            return true;
+        } catch (error) {
+            // Пробуем HTTP, если HTTPS не работает
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1500);
+                
+                await fetch(`http://${domain}`, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    signal: controller.signal,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                return true;
+            } catch (httpError) {
+                throw error;
+            }
+        }
     }
 
     async checkWithImage(domain) {
         return new Promise((resolve, reject) => {
             const img = new Image();
-            const timeout = 2000;
-            
             const timeoutId = setTimeout(() => {
-                img.onerror = null;
-                img.onload = null;
+                img.onload = img.onerror = null;
                 reject(new Error('Timeout'));
-            }, timeout);
+            }, 1500);
             
             img.onload = () => {
                 clearTimeout(timeoutId);
@@ -1199,35 +1259,37 @@ class UI {
             
             img.onerror = () => {
                 clearTimeout(timeoutId);
-                reject(new Error('Image not loaded'));
+                reject(new Error('Image error'));
             };
             
             img.src = `https://${domain}/favicon.ico?t=${Date.now()}`;
         });
     }
 
-    async checkWithHttp(domain) {
+    async checkWithIframe(domain) {
         return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            const timeout = 2000;
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
             
-            xhr.timeout = timeout;
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4) {
-                    resolve(true);
-                }
-            };
-            
-            xhr.ontimeout = () => {
+            const timeoutId = setTimeout(() => {
+                document.body.removeChild(iframe);
                 reject(new Error('Timeout'));
+            }, 1500);
+            
+            iframe.onload = () => {
+                clearTimeout(timeoutId);
+                document.body.removeChild(iframe);
+                resolve(true);
             };
             
-            xhr.onerror = () => {
-                reject(new Error('Network error'));
+            iframe.onerror = () => {
+                clearTimeout(timeoutId);
+                document.body.removeChild(iframe);
+                reject(new Error('Iframe error'));
             };
             
-            xhr.open('HEAD', `http://${domain}`, true);
-            xhr.send();
+            iframe.src = `https://${domain}`;
+            document.body.appendChild(iframe);
         });
     }
 

@@ -568,6 +568,7 @@ body.fullscreen-active footer {
     transition: all 0.3s ease;
 }
 
+/* Editor Toolbar - фиксированная высота */
 .editor-toolbar {
     display: flex;
     align-items: center;
@@ -576,6 +577,8 @@ body.fullscreen-active footer {
     background: var(--color-surface-alt);
     border-bottom: 0px solid  var(--color-border-light);
     min-height: 50px;
+    height: 50px;
+    flex-shrink: 0;
 }
 
 .filename {
@@ -592,6 +595,7 @@ body.fullscreen-active footer {
     display: flex;
     gap: var(--space-xs);
     align-items: center;
+    height: 100%;
 }
 
 /* Кнопка проверки доступности */
@@ -907,7 +911,7 @@ body.disabled #overlay {
 
 .popup:not(.hidden) {
     opacity: 1;
-	min-width: 450px;
+    min-width: 450px;
     visibility: visible;
     transform: translate(-50%, -50%) scale(1);
 }
