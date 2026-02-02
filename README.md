@@ -1,5 +1,7 @@
 # Установка Keenetic NFQWS с Web-интерфейсом
 
+![Uploading Скриншот-4.jpg…](https://github.com/disasdter/Keenetic-NFQWS-Theme/blob/main/%D0%A1%D0%BA%D1%80%D0%B8%D0%BD%D1%88%D0%BE%D1%82-4.jpg?raw=true)
+
 Данный проект позволяет установить **Keenetic NFQWS** с web-интерфейсом на маршрутизатор Keenetic.
 Добвлено:
 1) Синтаксис файла .conf
